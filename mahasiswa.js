@@ -5,7 +5,9 @@ const {body, validationResult } = require('express-validator');
 const connection = require("./db");
 
 router.get('/', function (req, res){
-    connection.query('select * from mahasiswa order by id_m desc', function(err,rows){
+    connection.query('select a.nama, b.nama_jurusan as jurusan ' +
+    ' from mahasiswa a join jurusan b ' + 
+    ' on b.id_j=a.id_jurusan order by id_m desc', function(err,rows){
         if (err){
             return res.status(500).json({
                 status: false,
@@ -24,7 +26,8 @@ router.get('/', function (req, res){
 router.post('/store',[
     //validasi
     body('nama').notEmpty(),
-    body('nrp').notEmpty()
+    body('nrp').notEmpty(),
+    body('jurusan').notEmpty()
 ],(req, res)=>{
     const error = validationResult(req);
     if(!error.isEmpty()){
@@ -34,7 +37,8 @@ router.post('/store',[
     }
     let data = {
         nama: req.body.nama,
-        nrp: req.body.nrp
+        nrp: req.body.nrp,
+        id_jurusan: req.body.jurusan,
     };
     connection.query('insert into mahasiswa set ?', data, function(err, rows){
         if(err){
@@ -82,7 +86,8 @@ router.get('/(:id)', function (req, res) {
 router.patch('/update/(:id)', [
  //validasi
  body('nama').notEmpty(),
- body('nrp').notEmpty()
+ body('nrp').notEmpty(),
+ body('jurusan').notEmpty(),
 ],(req, res)=>{
  const error = validationResult(req);
  if(!error.isEmpty()){
@@ -93,7 +98,8 @@ router.patch('/update/(:id)', [
  let id = req.params.id;
  let data = {
      nama: req.body.nama,
-     nrp: req.body.nrp
+     nrp: req.body.nrp,
+     id_jurusan: req.body.jurusan
  };
      connection.query(`update mahasiswa set ? where id_m = ${id}`, data ,function(eror, rows){
          if(eror){
