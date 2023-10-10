@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
     //mengecek Jenis FIle Yang Diizinkan (contoh hanya gambar JPEG dana PNG)
-    if (file.minetype === 'image/jpeg' || file.minetype === 'image/png' || file.minetype === 'image/pdf') {
+    if (file.minetype === 'image/jpeg' || file.minetype === 'image/png' || file.mimetype === 'application/pdf') {
         cb(null, true); // Izinkan File
     }else{
         cb(new Error('Jenis File Tidak diizinkan'), false); // file ditolak
