@@ -1,6 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const {body, validationResult } = require('express-validator');
+const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/image')
+    },
+    filename: (req, file, cb) => {
+        console.log(file)
+        cb(null, Date.now() + path.extname(file.originalname) )
+    }
+}) 
+
+const fileFilter = (req, file, cb) => {
+    //mengecek Jenis FIle Yang Diizinkan (contoh hanya gambar JPEG dana PNG)
+    if (file.minetype === 'image/jpeg' || file.minetype === 'image/png' || file.minetype === 'image/pdf') {
+        cb(null, true); // Izinkan File
+    }else{
+        cb(new Error('Jenis File Tidak diizinkan'), false); // file ditolak
+    }
+}
+const upload = multer({storage: storage, fileFilter: fileFilter})
+
 
 const connection = require("./db");
 
@@ -23,7 +47,7 @@ router.get('/', function (req, res){
     });
 });
 
-router.post('/store',[
+router.post('/store', upload.single("gambar") , [
     //validasi
     body('nama').notEmpty(),
     body('nrp').notEmpty(),
@@ -39,6 +63,7 @@ router.post('/store',[
         nama: req.body.nama,
         nrp: req.body.nrp,
         id_jurusan: req.body.jurusan,
+        gambar: req.file.filename,
     };
     connection.query('insert into mahasiswa set ?', data, function(err, rows){
         if(err){
@@ -83,7 +108,7 @@ router.get('/(:id)', function (req, res) {
      });
  });
  
-router.patch('/update/(:id)', [
+router.patch('/update/(:id)', upload.single("gambar") , [
  //validasi
  body('nama').notEmpty(),
  body('nrp').notEmpty(),
@@ -96,6 +121,9 @@ router.patch('/update/(:id)', [
      });
  }
  let id = req.params.id;
+ //Lakukan Pengecekan Apakah Ada file yang diunggah
+ let gambar = req.file ? req.file.filename : null;
+
  let data = {
      nama: req.body.nama,
      nrp: req.body.nrp,
@@ -111,7 +139,7 @@ router.patch('/update/(:id)', [
          }else{
              return res.status(200).json({
                  status: true,
-                 message: 'Update Data Success Dude....',
+                 message: 'Update D++ta Success Dude....',
              });
          }
      });
@@ -119,6 +147,30 @@ router.patch('/update/(:id)', [
 
  router.delete('/delete/(:id)', function (req, res) {
     let id = req.params.id;
+    
+    connection.query(`select * from mahasiswa where id_m = ${id}`, function(eror, rows){
+        if(eror){
+            return res.status(500).json({
+                status: false,
+                message: 'Server Eror Dude.....',
+                eror: eror
+            });
+        }
+        if(rows.length ===0){
+            return res.status(404).json({
+                status: false,
+                message: 'Coba Lagi Dude.....',
+                eror: eror
+            });
+        }
+        const namaFileLama = rows[0].gambar;
+
+        // Hapus file lama jika ada
+        if(namaFileLama) {
+            const pathFileLama = path.join(__dirname, './public/image', namaFileLama);
+            fs.unlinkSync(pathFileLama);
+        }
+    
      connection.query(`delete from mahasiswa where id_m = ${id}`, function(eror, rows){
          if(eror){
              return res.status(500).json({
@@ -134,6 +186,8 @@ router.patch('/update/(:id)', [
          }
      });
  });
+
+});
 
 
 module.exports = router;
