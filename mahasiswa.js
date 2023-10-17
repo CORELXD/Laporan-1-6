@@ -16,8 +16,8 @@ const storage = multer.diskStorage({
 }) 
 
 const fileFilter = (req, file, cb) => {
-    //mengecek Jenis FIle Yang Diizinkan (contoh hanya gambar JPEG dana PNG)
-    if (file.minetype === 'image/jpeg' || file.minetype === 'image/png' || file.mimetype === 'application/pdf') {
+    //mengecek Jenis FIle Yang Diizinkan (contoh hanya gambar JPEG,PNG, dan PDF)
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'application/pdf') {
         cb(null, true); // Izinkan File
     }else{
         cb(new Error('Jenis File Tidak diizinkan'), false); // file ditolak
@@ -47,7 +47,7 @@ router.get('/', function (req, res){
     });
 });
 
-router.post('/store', upload.single("gambar") , [
+router.post('/store', upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]), [
     //validasi
     body('nama').notEmpty(),
     body('nrp').notEmpty(),
@@ -63,7 +63,8 @@ router.post('/store', upload.single("gambar") , [
         nama: req.body.nama,
         nrp: req.body.nrp,
         id_jurusan: req.body.jurusan,
-        gambar: req.file.filename,
+        gambar: req.files.gambar[0].filename, 
+        swa_foto: req.files.swa_foto[0].filename, 
     };
     connection.query('insert into mahasiswa set ?', data, function(err, rows){
         if(err){
@@ -108,7 +109,7 @@ router.get('/(:id)', function (req, res) {
      });
  });
  
-router.patch('/update/(:id)', upload.single("gambar") , [
+router.patch('/update/(:id)', upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]), [
  //validasi
  body('nama').notEmpty(),
  body('nrp').notEmpty(),
@@ -122,12 +123,15 @@ router.patch('/update/(:id)', upload.single("gambar") , [
  }
  let id = req.params.id;
  //Lakukan Pengecekan Apakah Ada file yang diunggah
- let gambar = req.file ? req.file.filename : null;
+ let gambar = req.files['gambar']? req.files['gambar'][0].filename : null;
+ let swa_foto = req.files['swa_foto']? req.files['swa_foto'][0].filename : null;
 
  let data = {
      nama: req.body.nama,
      nrp: req.body.nrp,
-     id_jurusan: req.body.jurusan
+     id_jurusan: req.body.jurusan,
+     gambar: gambar,
+     swa_foto: swa_foto
  };
      connection.query(`update mahasiswa set ? where id_m = ${id}`, data ,function(eror, rows){
          if(eror){
@@ -139,7 +143,7 @@ router.patch('/update/(:id)', upload.single("gambar") , [
          }else{
              return res.status(200).json({
                  status: true,
-                 message: 'Update D++ta Success Dude....',
+                 message: 'Update Data Success Dude....',
              });
          }
      });
@@ -163,12 +167,17 @@ router.patch('/update/(:id)', upload.single("gambar") , [
                 eror: eror
             });
         }
-        const namaFileLama = rows[0].gambar;
+        const gambarLama = rows[0].gambar;
+        const swa_fotoLama = rows[0].swa_foto;
 
         // Hapus file lama jika ada
-        if(namaFileLama) {
-            const pathFileLama = path.join(__dirname, './public/image', namaFileLama);
-            fs.unlinkSync(pathFileLama);
+        if(gambarLama) {
+            const pathGambar = path.join(__dirname, './public/image', gambarLama);
+            fs.unlinkSync(pathGambar);
+        }
+        if(swa_fotoLama) {
+            const pathSwaFoto = path.join(__dirname, './public/image', swa_fotoLama);
+            fs.unlinkSync(pathSwaFoto);
         }
     
      connection.query(`delete from mahasiswa where id_m = ${id}`, function(eror, rows){

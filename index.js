@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
 const port = 8000;
+const cors = require('cors')
+//membuat route baru dengan method Get Dan isinya
+app.use(cors())
+
 
 const bodyPs = require('body-parser');
 app.use(bodyPs.urlencoded({ extended: false}));
