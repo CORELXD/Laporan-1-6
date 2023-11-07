@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
-const connection = require('../../config/db'); 
+const connection = require('./../db'); 
 
 // Secret key untuk token JWT
 const secretKey = 'kunciRahasiaYangSama'; 

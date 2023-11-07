@@ -25,7 +25,7 @@ const fileFilter = (req, file, cb) => {
 }
 const upload = multer({storage: storage, fileFilter: fileFilter})
 
-const authenticateToken = require('../routes/auth/midleware/authenticateToken')
+const authenticateToken = require('./auth/midleware/authenticateToken')
 
 
 const connection = require("./db");
