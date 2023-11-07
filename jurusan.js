@@ -91,7 +91,7 @@ router.get("/:id", (req, res) => {
 
 // PATCH (UPDATE) a jurusan record by ID
 router.patch(
-  "/update/:id",
+  "/update/:id_j",
   [
     // Validation
     body("nama_jurusan").notEmpty(),
@@ -104,14 +104,14 @@ router.patch(
       });
     }
 
-    const id = req.params.id;
+    const id_j = req.params.id_j;
     const data = {
       nama_jurusan: req.body.nama_jurusan,
     };
 
     connection.query(
       "UPDATE jurusan SET ? WHERE id_j = ?",
-      [data, id],
+      [data, id_j],
       (error, result) => {
         if (error) {
           return res.status(500).json({
