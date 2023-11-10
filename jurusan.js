@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
+const authenticateToken = require('./auth/midleware/authenticateToken');
 const connection = require("./db"); // Update the path to your database connection file
 
 // GET all jurusan records
-router.get("/", (req, res) => {
+router.get("/", authenticateToken,(req, res) => {
   connection.query("SELECT * FROM jurusan", (err, rows) => {
     if (err) {
       return res.status(500).json({
@@ -28,6 +29,7 @@ router.post(
     // Validation
     body("nama_jurusan").notEmpty(),
   ],
+  authenticateToken,
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -60,7 +62,7 @@ router.post(
 );
 
 // GET a specific jurusan record by ID
-router.get("/:id", (req, res) => {
+router.get("/:id",  authenticateToken, (req, res) => {
   const id = req.params.id;
   connection.query(
     "SELECT * FROM jurusan WHERE id_j = ?",
@@ -96,6 +98,7 @@ router.patch(
     // Validation
     body("nama_jurusan").notEmpty(),
   ],
+  authenticateToken,
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -131,7 +134,7 @@ router.patch(
 );
 
 // DELETE a jurusan record by ID
-router.delete("/delete/:id", (req, res) => {
+router.delete("/delete/:id",  authenticateToken,(req, res) => {
   const id = req.params.id;
   connection.query(
     "DELETE FROM jurusan WHERE id_j = ?",
